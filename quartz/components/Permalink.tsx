@@ -10,7 +10,7 @@ interface Options {
 
 export default ((opts?: Options) => {
   const Permalink: QuartzComponent = ({ displayClass, fileData, cfg }: QuartzComponentProps) => {
-    const last_commit = fileData.git;
+    const last_commit = fileData.git
 
     console.log(fileData)
 
@@ -19,7 +19,7 @@ export default ((opts?: Options) => {
     }
 
     const href = `/${fileData.slug!}+${last_commit.hash}`
-    
+
     return (
       <div class={classNames(displayClass, "permalink")}>
         <a href={href}>

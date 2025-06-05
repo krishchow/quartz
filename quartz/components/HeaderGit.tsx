@@ -1,4 +1,4 @@
-import { Git } from "../plugins";
+import { Git } from "../plugins"
 import { QuartzComponent, QuartzComponentConstructor, QuartzComponentProps } from "./types"
 
 interface Options {
@@ -7,7 +7,7 @@ interface Options {
 
 export default ((opts?: Options) => {
   const HeaderGit: QuartzComponent = (props: QuartzComponentProps) => {
-    const sha = props.fileData.git;
+    const sha = props.fileData.git
     return <header>Hash: {sha?.hash}</header>
   }
 
