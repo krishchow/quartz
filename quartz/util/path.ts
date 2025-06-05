@@ -290,3 +290,8 @@ function _addRelativeToStart(s: string): string {
 
   return s
 }
+
+// Function to dynamically get the absolute path to the project root
+export const getProjectRoot = () => {
+  return process.cwd()
+}

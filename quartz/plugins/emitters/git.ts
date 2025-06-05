@@ -1,13 +1,12 @@
-import { FilePath, isFullSlug, joinSegments, pathToRoot } from "../../util/path"
+import { FilePath, getProjectRoot, isFullSlug, joinSegments, pathToRoot } from "../../util/path"
 import { QuartzEmitterPlugin } from "../types"
 import DepGraph from "../../depgraph"
 import { createGitHistoryParser } from "../../util/git-parser"
-import path from "path"
 import { FullPageLayout } from "../../cfg"
 import { defaultContentPageLayout, sharedPageComponents } from "../../../quartz.layout"
 import { Content } from "../../components"
-import HeaderConstructor from "../../components/Header"
 import BodyConstructor from "../../components/Body"
+import HeaderConstructor from "../../components/Header"
 import { parseDependencies } from "./contentPage"
 import { Root } from "hast"
 import { pageResources, renderPage } from "../../components/renderPage"
@@ -15,34 +14,6 @@ import { QuartzComponentProps } from "../../components/types"
 import { write } from "./helpers"
 
 const CONTENT_DIR = "content"
-
-// Function to dynamically get the absolute path to the project root
-const getProjectRoot = () => {
-  return process.cwd()
-}
-
-function strip(fullPath: string, prefix: string = CONTENT_DIR): string {
-  // Normalize paths to handle different path separators and resolve '..' and '.'
-  const normalizedFullPath = path.normalize(fullPath)
-  const normalizedPrefix = path.normalize(prefix)
-
-  // Check if the path actually starts with the prefix
-  if (normalizedFullPath.startsWith(normalizedPrefix)) {
-    // Remove the prefix
-    let result = normalizedFullPath.slice(normalizedPrefix.length)
-
-    // If the result starts with a path separator, remove it
-    // This ensures we don't return paths starting with / or \
-    if (result.startsWith(path.sep)) {
-      result = result.slice(1)
-    }
-
-    return result
-  }
-
-  // Return the original path if it doesn't start with the prefix
-  return fullPath
-}
 
 const parser = createGitHistoryParser(joinSegments(getProjectRoot(), CONTENT_DIR))
 
@@ -55,6 +26,11 @@ export const Git: QuartzEmitterPlugin<Partial<FullPageLayout>> = (userOpts) => {
   }
 
   const { head: Head, header, beforeBody, pageBody, left, right, footer: Footer } = opts
+
+  const commits = parser.getCommits({ maxCount: 1 })
+
+  const mostRecentCommit = commits[0]
+
   const Header = HeaderConstructor()
   const Body = BodyConstructor()
 
@@ -82,10 +58,6 @@ export const Git: QuartzEmitterPlugin<Partial<FullPageLayout>> = (userOpts) => {
       const cfg = ctx.cfg.configuration
       const fps: FilePath[] = []
       const allFiles = content.map((c) => c[1].data)
-
-      const commits = parser.getCommits({ maxCount: 1 })
-
-      const mostRecentCommit = commits[0]
 
       // TODO: this should work for changed and added files, but we will want another codepath
       // for deleted files, and maybe another for renamed.
