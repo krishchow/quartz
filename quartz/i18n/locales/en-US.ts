@@ -29,6 +29,7 @@ export default {
       lightMode: "Light mode",
       darkMode: "Dark mode",
     },
+    permalink: "Permalink",
     explorer: {
       title: "Explorer",
     },

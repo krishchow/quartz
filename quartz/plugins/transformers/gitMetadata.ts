@@ -2,9 +2,7 @@ import { QuartzTransformerPlugin } from "../types"
 import { getProjectRoot, joinSegments } from "../../util/path"
 import { Commit, createGitHistoryParser } from "../../util/git-parser"
 
-export interface Options {
-
-}
+export interface Options {}
 
 const CONTENT_DIR = "content"
 
@@ -16,16 +14,22 @@ export const GitMetadata: QuartzTransformerPlugin<Partial<Options> | undefined> 
   const commits = parser.getCommits({ maxCount: 1 })
 
   const mostRecentCommit = commits[0]
-  
+
   return {
     name: "Git",
-    markdownPlugins({ }) {
+    markdownPlugins({}) {
       return [
         () => {
           return (_, file) => {
+            console.log(file)
 
             // fill in git metadata
-            file.data.git = mostRecentCommit;
+            // file.data.git = mostRecentCommit;
+            file.data.mostRecentCommit = mostRecentCommit
+
+            if (file.data.relativePath) {
+              file.data.git = parser.getLastCommitForFile(file.data.relativePath?.toString())
+            }
           }
         },
       ]
@@ -35,6 +39,7 @@ export const GitMetadata: QuartzTransformerPlugin<Partial<Options> | undefined> 
 
 declare module "vfile" {
   interface DataMap {
-    git: Commit
+    git?: Commit | null
+    mostRecentCommit: Commit
   }
 }

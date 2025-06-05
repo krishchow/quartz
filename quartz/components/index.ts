@@ -19,7 +19,7 @@ import DesktopOnly from "./DesktopOnly"
 import MobileOnly from "./MobileOnly"
 import RecentNotes from "./RecentNotes"
 import Breadcrumbs from "./Breadcrumbs"
-import HeaderGit from "./HeaderGit"
+import Permalink from "./Permalink"
 
 export {
   ArticleTitle,
@@ -43,5 +43,5 @@ export {
   RecentNotes,
   NotFound,
   Breadcrumbs,
-  HeaderGit,
+  Permalink,
 }

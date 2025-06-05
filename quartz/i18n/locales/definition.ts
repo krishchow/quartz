@@ -27,6 +27,7 @@ export interface Translation {
       title: string
       noBacklinksFound: string
     }
+    permalink: string
     themeToggle: {
       lightMode: string
       darkMode: string
