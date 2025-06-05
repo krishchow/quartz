@@ -66,7 +66,7 @@ export class GitHistoryParser {
    * @param maxCount Maximum number of commits to retrieve (optional)
    * @returns List of commits
    */
-  public getCommits(branch?: string, maxCount?: number): Commit[] {
+  public getCommits({ branch, maxCount }: { branch?: string; maxCount?: number }): Commit[] {
     let command = 'log --pretty=format:"%H|%h|%an|%ae|%ad|%s" --date=iso'
 
     if (branch) {
@@ -205,10 +205,12 @@ export class GitHistoryParser {
    */
   public getLastCommitForFile(filePath: string): Commit | null {
     try {
-      const output = this.executeGitCommand(`log -n 1 --pretty=format:"%H|%h|%an|%ae|%ad|%s" --date=iso -- ${filePath}`);
-      if (!output) return null;
+      const output = this.executeGitCommand(
+        `log -n 1 --pretty=format:"%H|%h|%an|%ae|%ad|%s" --date=iso -- ${filePath}`,
+      )
+      if (!output) return null
 
-      const [hash, shortHash, author, email, dateStr, message] = output.split('|');
+      const [hash, shortHash, author, email, dateStr, message] = output.split("|")
 
       return {
         hash,
@@ -217,12 +219,12 @@ export class GitHistoryParser {
         email,
         date: new Date(dateStr),
         message,
-        fileChanges: this.getFilesChangedInCommit(hash).filter(change => 
-          change.path === filePath || change.oldPath === filePath
-        )
-      };
+        fileChanges: this.getFilesChangedInCommit(hash).filter(
+          (change) => change.path === filePath || change.oldPath === filePath,
+        ),
+      }
     } catch (error) {
-      return null;
+      return null
     }
   }
 }

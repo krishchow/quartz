@@ -1,46 +1,46 @@
 // git-history-parser.ts
 
-import { execSync } from 'child_process';
-import * as fs from 'fs';
-import * as path from 'path';
+import { execSync } from "child_process"
+import * as fs from "fs"
+import * as path from "path"
 
 /**
  * Represents a file change in a commit
  */
 export interface FileChange {
-  path: string;
-  status: 'added' | 'modified' | 'deleted' | 'renamed';
-  oldPath?: string; // Only relevant for renamed files
+  path: string
+  status: "added" | "modified" | "deleted" | "renamed"
+  oldPath?: string // Only relevant for renamed files
 }
 
 /**
  * Represents a Git commit
  */
 export interface Commit {
-  hash: string;
-  shortHash: string;
-  author: string;
-  email: string;
-  date: Date;
-  message: string;
-  fileChanges: FileChange[];
+  hash: string
+  shortHash: string
+  author: string
+  email: string
+  date: Date
+  message: string
+  fileChanges: FileChange[]
 }
 
 /**
  * Main class for parsing Git history
  */
 export class GitHistoryParser {
-  private repoPath: string;
+  private repoPath: string
 
   /**
    * Create a new GitHistoryParser instance
    * @param repoPath Path to the Git repository
    */
   constructor(repoPath: string) {
-    this.repoPath = path.resolve(repoPath);
+    this.repoPath = path.resolve(repoPath)
 
-    if (!fs.existsSync(path.join(this.repoPath, '.git'))) {
-      throw new Error(`${this.repoPath} is not a valid Git repository`);
+    if (!fs.existsSync(path.join(this.repoPath, ".git"))) {
+      throw new Error(`${this.repoPath} is not a valid Git repository`)
     }
   }
 
@@ -53,10 +53,10 @@ export class GitHistoryParser {
     try {
       return execSync(`git ${command}`, {
         cwd: this.repoPath,
-        encoding: 'utf-8'
-      }).trim();
+        encoding: "utf-8",
+      }).trim()
     } catch (error) {
-      throw new Error(`Git command failed: ${error}`);
+      throw new Error(`Git command failed: ${error}`)
     }
   }
 
@@ -67,21 +67,21 @@ export class GitHistoryParser {
    * @returns List of commits
    */
   public getCommits(branch?: string, maxCount?: number): Commit[] {
-    let command = 'log --pretty=format:"%H|%h|%an|%ae|%ad|%s" --date=iso';
+    let command = 'log --pretty=format:"%H|%h|%an|%ae|%ad|%s" --date=iso'
 
     if (branch) {
-      command += ` ${branch}`;
+      command += ` ${branch}`
     }
 
     if (maxCount && maxCount > 0) {
-      command += ` -${maxCount}`;
+      command += ` -${maxCount}`
     }
 
-    const output = this.executeGitCommand(command);
-    if (!output) return [];
+    const output = this.executeGitCommand(command)
+    if (!output) return []
 
-    const commits: Commit[] = output.split('\n').map(line => {
-      const [hash, shortHash, author, email, dateStr, message] = line.split('|');
+    const commits: Commit[] = output.split("\n").map((line) => {
+      const [hash, shortHash, author, email, dateStr, message] = line.split("|")
 
       return {
         hash,
@@ -90,11 +90,11 @@ export class GitHistoryParser {
         email,
         date: new Date(dateStr),
         message,
-        fileChanges: this.getFilesChangedInCommit(hash)
-      };
-    });
+        fileChanges: this.getFilesChangedInCommit(hash),
+      }
+    })
 
-    return commits;
+    return commits
   }
 
   /**
@@ -103,38 +103,34 @@ export class GitHistoryParser {
    * @returns List of file changes
    */
   public getFilesChangedInCommit(commitHash: string): FileChange[] {
-    const output = this.executeGitCommand(`show --name-status --format="" ${commitHash}`);
-    if (!output) return [];
+    const output = this.executeGitCommand(`show --name-status --format="" ${commitHash}`)
+    if (!output) return []
 
-    const fileChanges: FileChange[] = [];
+    const fileChanges: FileChange[] = []
 
-    output.split('\n').forEach(line => {
-      if (!line.trim()) return;
+    output.split("\n").forEach((line) => {
+      if (!line.trim()) return
 
-      const [statusCode, ...pathParts] = line.split('\t');
+      const [statusCode, ...pathParts] = line.split("\t")
 
-      if (statusCode.startsWith('R')) {
+      if (statusCode.startsWith("R")) {
         // Handle renamed files
         fileChanges.push({
-          status: 'renamed',
+          status: "renamed",
           oldPath: pathParts[0],
-          path: pathParts[1]
-        });
+          path: pathParts[1],
+        })
       } else {
-        const status = statusCode === 'A' 
-          ? 'added' 
-          : statusCode === 'M' 
-            ? 'modified' 
-            : 'deleted';
+        const status = statusCode === "A" ? "added" : statusCode === "M" ? "modified" : "deleted"
 
         fileChanges.push({
-          status: status as FileChange['status'],
-          path: pathParts[0]
-        });
+          status: status as FileChange["status"],
+          path: pathParts[0],
+        })
       }
-    });
+    })
 
-    return fileChanges;
+    return fileChanges
   }
 
   /**
@@ -145,9 +141,9 @@ export class GitHistoryParser {
    */
   public getFileDiffAtRevision(filePath: string, commitHash: string): string {
     try {
-      return this.executeGitCommand(`show ${commitHash}:${filePath}`);
+      return this.executeGitCommand(`show ${commitHash}:${filePath}`)
     } catch (error) {
-      throw new Error(`Could not get file at revision: ${error}`);
+      throw new Error(`Could not get file at revision: ${error}`)
     }
   }
 
@@ -159,14 +155,16 @@ export class GitHistoryParser {
    * @returns The diff between the two revisions
    */
   public getFileDiffBetweenRevisions(
-    filePath: string, 
-    oldCommitHash: string, 
-    newCommitHash: string
+    filePath: string,
+    oldCommitHash: string,
+    newCommitHash: string,
   ): string {
     try {
-      return this.executeGitCommand(`diff ${oldCommitHash}:${filePath} ${newCommitHash}:${filePath}`);
+      return this.executeGitCommand(
+        `diff ${oldCommitHash}:${filePath} ${newCommitHash}:${filePath}`,
+      )
     } catch (error) {
-      throw new Error(`Could not get diff between revisions: ${error}`);
+      throw new Error(`Could not get diff between revisions: ${error}`)
     }
   }
 
@@ -176,11 +174,13 @@ export class GitHistoryParser {
    * @returns List of commits that modified the file
    */
   public getFileHistory(filePath: string): Commit[] {
-    const output = this.executeGitCommand(`log --follow --pretty=format:"%H|%h|%an|%ae|%ad|%s" --date=iso -- ${filePath}`);
-    if (!output) return [];
+    const output = this.executeGitCommand(
+      `log --follow --pretty=format:"%H|%h|%an|%ae|%ad|%s" --date=iso -- ${filePath}`,
+    )
+    if (!output) return []
 
-    const commits: Commit[] = output.split('\n').map(line => {
-      const [hash, shortHash, author, email, dateStr, message] = line.split('|');
+    const commits: Commit[] = output.split("\n").map((line) => {
+      const [hash, shortHash, author, email, dateStr, message] = line.split("|")
 
       return {
         hash,
@@ -189,17 +189,17 @@ export class GitHistoryParser {
         email,
         date: new Date(dateStr),
         message,
-        fileChanges: this.getFilesChangedInCommit(hash).filter(change => 
-          change.path === filePath || change.oldPath === filePath
-        )
-      };
-    });
+        fileChanges: this.getFilesChangedInCommit(hash).filter(
+          (change) => change.path === filePath || change.oldPath === filePath,
+        ),
+      }
+    })
 
-    return commits;
+    return commits
   }
 }
 
 // Export a factory function for easier usage
 export function createGitHistoryParser(repoPath: string): GitHistoryParser {
-  return new GitHistoryParser(repoPath);
+  return new GitHistoryParser(repoPath)
 }
