@@ -21,14 +21,13 @@ export const GitMetadata: QuartzTransformerPlugin<Partial<Options> | undefined> 
       return [
         () => {
           return (_, file) => {
-            console.log(file)
-
             // fill in git metadata
             // file.data.git = mostRecentCommit;
             file.data.mostRecentCommit = mostRecentCommit
 
             if (file.data.relativePath) {
-              file.data.git = parser.getLastCommitForFile(file.data.relativePath?.toString())
+              // file.data.git = parser.getLastCommitForFile(file.data.relativePath?.toString())
+              file.data.git = parser.getLastTwoCommitsForFile(file.data.relativePath?.toString())
             }
           }
         },
@@ -39,7 +38,7 @@ export const GitMetadata: QuartzTransformerPlugin<Partial<Options> | undefined> 
 
 declare module "vfile" {
   interface DataMap {
-    git?: Commit | null
+    git?: Commit[] | null
     mostRecentCommit: Commit
   }
 }
