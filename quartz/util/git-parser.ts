@@ -227,9 +227,52 @@ export class GitHistoryParser {
       return null
     }
   }
+
+  /**
+   * Get the last 2 commit that modified a specific file
+   * @param filePath Path to the file
+   * @returns The last commit that modified the file, or null if the file doesn't exist in the repository
+   */
+  public getLastTwoCommitsForFile(filePath: string): Commit[] | null {
+    try {
+      const output = this.executeGitCommand(
+        `log -n 2 --pretty=format:"%H|%h|%an|%ae|%ad|%s" --date=iso -- ${filePath}`,
+      )
+      if (!output) return null
+
+      const commits: Commit[] = output.split("\n").map((line) => {
+        const [hash, shortHash, author, email, dateStr, message] = line.split("|")
+
+        return {
+          hash,
+          shortHash,
+          author,
+          email,
+          date: new Date(dateStr),
+          message,
+          fileChanges: this.getFilesChangedInCommit(hash).filter(
+            (change) => change.path === filePath || change.oldPath === filePath,
+          ),
+        }
+      })
+
+      return commits
+    } catch (error) {
+      return null
+    }
+  }
 }
 
 // Export a factory function for easier usage
 export function createGitHistoryParser(repoPath: string): GitHistoryParser {
   return new GitHistoryParser(repoPath)
+}
+
+export function fileChangeStatus(fileChanges: FileChange[], filePath?: string) {
+  for (let i = 0; i < fileChanges.length; i++) {
+    const fc = fileChanges[i]
+    if (fc.path == filePath) {
+      return fc.status
+    }
+  }
 }

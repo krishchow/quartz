@@ -1,4 +1,3 @@
-import { Git } from "../plugins"
 import { QuartzComponent, QuartzComponentConstructor, QuartzComponentProps } from "./types"
 import styles from "./styles/permalink.scss"
 import { classNames } from "../util/lang"
@@ -10,15 +9,15 @@ interface Options {
 
 export default ((opts?: Options) => {
   const Permalink: QuartzComponent = ({ displayClass, fileData, cfg }: QuartzComponentProps) => {
-    const last_commit = fileData.git
+    const commits = fileData.git
 
-    console.log(fileData)
-
-    if (!last_commit) {
+    if (!commits || commits.length == 0) {
       return <></>
     }
 
-    const href = `/${fileData.slug!}+${last_commit.hash}`
+    const recent_rev = commits[0]
+
+    const href = `/${fileData.slug!}+${recent_rev.hash}`
 
     return (
       <div class={classNames(displayClass, "permalink")}>
