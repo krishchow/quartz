@@ -39,15 +39,17 @@ jobs:
     - name: Build with Quartz
       run: npx quartz build
 
-    - name: Push generated files
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+
+    - name: Push SHA-specific files to S3
       run: |
-        SHORT_SHA=$(echo "${{ inputs.content_sha }}" | cut -c1-7)
-        BRANCH_NAME="generated/${SHORT_SHA}"
-
-        git config user.name "github-actions[bot]"
-        git config user.email "github-actions[bot]@users.noreply.github.com"
-
-        git checkout -b "${BRANCH_NAME}"
-        git add -f public/
-        git commit -m "Generated files for content SHA ${{ inputs.content_sha }}"
-        git push origin "${BRANCH_NAME}"
+        SHA="${{ inputs.content_sha }}"
+        find ./public -type f -name "*+${SHA}*" | while read -r file; do
+          s3_path="${file#./public/}"
+          aws s3 cp "$file" "s3://${{ secrets.S3_BUCKET_NAME }}/${s3_path}"
+        done
