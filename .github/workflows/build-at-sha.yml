@@ -1,0 +1,53 @@
+name: Build and Push Generated Files at SHA
+
+on:
+  workflow_dispatch:
+    inputs:
+      content_sha:
+        description: 'The SHA of the content submodule to build against'
+        required: true
+        type: string
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        submodules: recursive
+        token: ${{ secrets.GH_TOKEN }}
+
+    - name: Update content submodule to specified SHA
+      run: |
+        cd content
+        git fetch origin
+        git checkout ${{ inputs.content_sha }}
+        cd ..
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build with Quartz
+      run: npx quartz build
+
+    - name: Push generated files
+      run: |
+        SHORT_SHA=$(echo "${{ inputs.content_sha }}" | cut -c1-7)
+        BRANCH_NAME="generated/${SHORT_SHA}"
+
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+
+        git checkout -b "${BRANCH_NAME}"
+        git add -f public/
+        git commit -m "Generated files for content SHA ${{ inputs.content_sha }}"
+        git push origin "${BRANCH_NAME}"
