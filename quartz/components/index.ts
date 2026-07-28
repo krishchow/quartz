@@ -21,6 +21,7 @@ import RecentNotes from "./RecentNotes"
 import Breadcrumbs from "./Breadcrumbs"
 import Permalink from "./Permalink"
 import PermalinkNav from "./PermalinkNav"
+import FolderIndex from "./FolderIndex"
 
 export {
   ArticleTitle,
@@ -46,4 +47,5 @@ export {
   Breadcrumbs,
   Permalink,
   PermalinkNav,
+  FolderIndex,
 }

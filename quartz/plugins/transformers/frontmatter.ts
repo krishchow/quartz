@@ -71,6 +71,9 @@ export const FrontMatter: QuartzTransformerPlugin<Partial<Options> | undefined> 
             const cssclasses = coerceToArray(coalesceAliases(data, ["cssclasses", "cssclass"]))
             if (cssclasses) data.cssclasses = cssclasses
 
+            const hint = coalesceAliases(data, ["hint", "subtitle"])
+            if (hint !== undefined && hint.toString() !== "") data.hint = hint.toString()
+
             // fill in frontmatter
             file.data.frontmatter = data as QuartzPluginData["frontmatter"]
           }
@@ -88,6 +91,7 @@ declare module "vfile" {
         tags: string[]
         aliases: string[]
         description: string
+        hint: string
         publish: boolean
         draft: boolean
         enableToc: string

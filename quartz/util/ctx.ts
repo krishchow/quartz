@@ -13,8 +13,19 @@ export interface Argv {
   concurrency?: number
 }
 
+export interface FilteredFileMeta {
+  slug: FullSlug
+  title: string
+  hint?: string
+  draft: boolean
+  filteredBy: string
+}
+
 export interface BuildCtx {
   argv: Argv
   cfg: QuartzConfig
   allSlugs: FullSlug[]
+  // lightweight metadata for files removed by the filter pipeline
+  // (e.g. drafts) so components can still list them without emitting them
+  filteredMeta?: FilteredFileMeta[]
 }

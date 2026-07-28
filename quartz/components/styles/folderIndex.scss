@@ -1,0 +1,51 @@
+.folder-index {
+  ul {
+    list-style: none;
+    padding-left: 1rem;
+    margin: 0.5rem 0;
+  }
+
+  & > ul {
+    padding-left: 0;
+  }
+
+  li {
+    margin: 0.35rem 0;
+  }
+
+  .folder-index-title {
+    font-weight: 600;
+  }
+
+  .folder-index-hint {
+    display: block;
+    font-size: 0.85em;
+    color: var(--gray);
+    margin: 0;
+  }
+
+  .folder-index-draft {
+    color: var(--gray);
+
+    .folder-index-title {
+      font-weight: 500;
+      font-style: italic;
+    }
+
+    .folder-index-badge {
+      display: inline-block;
+      font-size: 0.7em;
+      font-style: normal;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0.05rem 0.35rem;
+      margin-left: 0.4rem;
+      border-radius: 4px;
+      border: 1px solid var(--lightgray);
+      background-color: var(--lightgray);
+      color: var(--darkgray);
+      vertical-align: middle;
+    }
+  }
+}

@@ -40,7 +40,17 @@ export class GitHistoryParser {
     this.repoPath = path.resolve(repoPath)
 
     if (!fs.existsSync(path.join(this.repoPath, ".git"))) {
-      throw new Error(`${this.repoPath} is not a valid Git repository`)
+      // fall back to checking whether the path is inside a git work tree
+      // (e.g. a content folder tracked by the repository root)
+      try {
+        execSync("git rev-parse --is-inside-work-tree", {
+          cwd: this.repoPath,
+          encoding: "utf-8",
+          stdio: ["ignore", "pipe", "ignore"],
+        })
+      } catch {
+        throw new Error(`${this.repoPath} is not a valid Git repository`)
+      }
     }
   }
 
