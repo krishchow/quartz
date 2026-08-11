@@ -24,6 +24,13 @@ function toggleExplorer(this: HTMLElement) {
   content.style.maxHeight = content.style.maxHeight === "0px" ? content.scrollHeight + "px" : "0px"
 }
 
+function navigateToFolder(this: HTMLElement) {
+  const folderUrl = this.dataset.folderUrl
+  if (!folderUrl) return
+  const url = new URL(folderUrl, window.location.href)
+  window.spaNavigate(url)
+}
+
 function toggleFolder(evt: MouseEvent) {
   evt.stopPropagation()
   const target = evt.target as MaybeHTMLElement
@@ -58,7 +65,11 @@ function setupExplorer() {
       "folder-button",
     ) as HTMLCollectionOf<HTMLElement>) {
       item.addEventListener("click", toggleFolder)
-      window.addCleanup(() => item.removeEventListener("click", toggleFolder))
+      item.addEventListener("dblclick", navigateToFolder)
+      window.addCleanup(() => {
+        item.removeEventListener("click", toggleFolder)
+        item.removeEventListener("dblclick", navigateToFolder)
+      })
     }
   }
 

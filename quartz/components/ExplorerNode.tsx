@@ -213,7 +213,13 @@ export function ExplorerNode({ node, opts, fullPath, fileData }: ExplorerNodePro
                     {node.displayName}
                   </a>
                 ) : (
-                  <button class="folder-button">
+                  <button
+                    class="folder-button"
+                    data-folder-url={resolveRelative(
+                      fileData.slug!,
+                      folderPath as SimpleSlug,
+                    )}
+                  >
                     <span class="folder-title">{node.displayName}</span>
                   </button>
                 )}

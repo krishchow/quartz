@@ -40,28 +40,28 @@ export default ((opts?: Partial<FolderContentOptions>) => {
       allFiles: allPagesInFolder,
     }
 
-    const content =
-      (tree as Root).children.length === 0
-        ? fileData.description
-        : htmlToJsx(fileData.filePath!, tree)
+    const hasContent = (tree as Root).children.length > 0
+    const content = hasContent
+      ? htmlToJsx(fileData.filePath!, tree)
+      : fileData.description
 
     return (
       <div class={classes}>
-        <article>
-          <p>{content}</p>
-        </article>
-        <div class="page-listing">
-          {options.showFolderCount && (
-            <p>
-              {i18n(cfg.locale).pages.folderContent.itemsUnderFolder({
-                count: allPagesInFolder.length,
-              })}
-            </p>
-          )}
-          <div>
-            <PageList {...listProps} />
+        <article>{content}</article>
+        {!hasContent && (
+          <div class="page-listing">
+            {options.showFolderCount && (
+              <p>
+                {i18n(cfg.locale).pages.folderContent.itemsUnderFolder({
+                  count: allPagesInFolder.length,
+                })}
+              </p>
+            )}
+            <div>
+              <PageList {...listProps} />
+            </div>
           </div>
-        </div>
+        )}
       </div>
     )
   }
