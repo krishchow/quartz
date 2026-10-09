@@ -40,7 +40,7 @@ export const FolderPage: QuartzEmitterPlugin<Partial<FullPageLayout>> = (userOpt
     },
     async getDependencyGraph(_ctx, content, _resources) {
       // Example graph:
-      // nested/file.md --> nested/index.html
+      // nested/file.md --> nested/index.html, nested.html
       // nested/file2.md ------^
       const graph = new DepGraph<FilePath>()
 
@@ -49,6 +49,7 @@ export const FolderPage: QuartzEmitterPlugin<Partial<FullPageLayout>> = (userOpt
         const folderName = path.dirname(slug ?? "") as SimpleSlug
         if (slug && folderName !== "." && folderName !== "tags") {
           graph.addEdge(vfile.data.filePath!, joinSegments(folderName, "index.html") as FilePath)
+          graph.addEdge(vfile.data.filePath!, `${folderName}.html` as FilePath)
         }
       })
 
@@ -90,6 +91,16 @@ export const FolderPage: QuartzEmitterPlugin<Partial<FullPageLayout>> = (userOpt
         }
       }
 
+      // non-index content pages, i.e. the pages that own a `<slug>.html` file.
+      // A `writing.md` next to `writing/` would own `writing.html`, so the stub
+      // below must not clobber it. Index pages are excluded: `writing/index.md`
+      // emits `writing/index.html` and is the very page we redirect to.
+      const pageSlugs = new Set(
+        allFiles
+          .filter((data) => data.slug && path.basename(data.slug) !== "index")
+          .map((data) => stripSlashes(simplifySlug(data.slug!))),
+      )
+
       for (const folder of folders) {
         const slug = joinSegments(folder, "index") as FullSlug
         const externalResources = pageResources(pathToRoot(slug), resources)
@@ -113,6 +124,34 @@ export const FolderPage: QuartzEmitterPlugin<Partial<FullPageLayout>> = (userOpt
         })
 
         fps.push(fp)
+
+        // Also write `<folder>.html` (e.g. `writing.html`) redirecting to `<folder>/`.
+        // Some hosts rewrite an extensionless path to `<path>.html` (S3/CloudFront,
+        // GitHub Pages, ...), which would 404 on `/writing` since only
+        // `writing/index.html` exists. Locally this is unused: the dev server
+        // serves the folder index directly for both `/writing` and `/writing/`.
+        if (!pageSlugs.has(folder)) {
+          // relative so it also works when the site is served from a baseDir
+          const redirectTarget = path.posix.basename(folder) + "/"
+          const redirectFp = await write({
+            ctx,
+            content: `<!DOCTYPE html>
+<html lang="en-us">
+<head>
+<title>${folder}</title>
+<link rel="canonical" href="${redirectTarget}">
+<meta name="robots" content="noindex">
+<meta charset="utf-8">
+<meta http-equiv="refresh" content="0; url=${redirectTarget}">
+</head>
+</html>
+`,
+            slug: `${folder}` as FullSlug,
+            ext: ".html",
+          })
+
+          fps.push(redirectFp)
+        }
       }
       return fps
     },
