@@ -236,3 +236,74 @@ test("data children are generic and can contain nested validated data", async ()
     /must be consumed by a parent/,
   )
 })
+
+test("SlotStack renders linked JSON and rich alternatives through one list item structure", async () => {
+  const html = await compile(
+    `<SlotStack bullets="true">The <SlotStack.Slot href="/starting" items='["ending", {"text":"middle","href":"/middle"}]'>starting<SlotStack.Item href="/body" className="custom"><em>body</em></SlotStack.Item></SlotStack.Slot> of a phrase</SlotStack>`,
+  )
+  assert.match(html, /<div class="md-slot-stack md-slot-stack-bullets">The /)
+  assert.match(html, /role="list"/)
+  assert.equal((html.match(/role="listitem"/g) ?? []).length, 4)
+  assert.match(
+    html,
+    /<a href="\/starting">starting<\/a><\/span><span role="listitem" class="md-slot-stack-item">ending/,
+  )
+  assert.match(html, /<a href="\/middle">middle<\/a>/)
+  assert.match(html, /class="md-slot-stack-item custom"><a href="\/body"><em>body<\/em><\/a>/)
+  assert.match(html, /<\/span> of a phrase<\/div>/)
+  assert.doesNotMatch(html, /<p>/)
+})
+
+test("SlotStack keeps multiple slots independent, supports empty alternatives, and defaults bullets off", async () => {
+  const html = await compile(
+    `<SlotStack><SlotStack.Slot items='["second"]'>first</SlotStack.Slot> and <SlotStack.Slot>only</SlotStack.Slot></SlotStack>`,
+  )
+  assert.equal((html.match(/role="list"/g) ?? []).length, 2)
+  assert.equal((html.match(/role="listitem"/g) ?? []).length, 3)
+  assert.doesNotMatch(html, /md-slot-stack-bullets/)
+  assert.match(html, />first<\/span><span[^>]*>second<\/span><\/span> and /)
+})
+
+test("SlotStack validates alternatives, nesting, and links", async () => {
+  for (const items of [
+    "{}",
+    "[1]",
+    "[null]",
+    '[{"text":"x","style":"red"}]',
+    '[{"text":"x","href":2}]',
+  ]) {
+    await assert.rejects(
+      compile(`<SlotStack><SlotStack.Slot items='${items}'>first</SlotStack.Slot></SlotStack>`),
+      /items must be an array/,
+    )
+  }
+  await assert.rejects(
+    compile("<SlotStack.Slot>first</SlotStack.Slot>"),
+    /must be a child of <SlotStack>/,
+  )
+  await assert.rejects(
+    compile("<SlotStack><SlotStack.Item>x</SlotStack.Item></SlotStack>"),
+    /must be a child of <SlotStack.Slot>/,
+  )
+  await assert.rejects(
+    compile('<SlotStack><SlotStack.Slot href="javascript:alert(1)">x</SlotStack.Slot></SlotStack>'),
+    /not an executable URL/,
+  )
+  await assert.rejects(
+    compile(
+      `<SlotStack><SlotStack.Slot items='[{"text":"x","href":"data:text/html,test"}]'>x</SlotStack.Slot></SlotStack>`,
+    ),
+    /not an executable URL/,
+  )
+  await assert.rejects(
+    compile(
+      '<SlotStack><SlotStack.Slot>x<SlotStack.Item href="java&#9;script:alert(1)">bad</SlotStack.Item></SlotStack.Slot></SlotStack>',
+    ),
+    /not an executable URL/,
+  )
+  const html = await compile(
+    `<SlotStack><SlotStack.Slot items='["&lt;script&gt;"]'>A &amp; B</SlotStack.Slot></SlotStack>`,
+  )
+  assert.match(html, /A &#x26; B/)
+  assert.doesNotMatch(html, /<script>/)
+})

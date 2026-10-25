@@ -1,9 +1,11 @@
 import type { ElementRegistry } from "./types"
 import { mapElements } from "./Map"
+import { slotStackElements } from "./SlotStack"
 
 /** Add static Markdown elements here. Names must start with a capital letter. */
 export const elements: ElementRegistry = {
   ...mapElements,
+  ...slotStackElements,
   Badge: {
     description: "A small inline status label styled with the site's theme.",
     examples: ['<Badge text="Work in progress" />'],
