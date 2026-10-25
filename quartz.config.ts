@@ -16,7 +16,16 @@ const config: QuartzConfig = {
     },
     locale: "en-US",
     baseUrl: "absurd.sh",
-    ignorePatterns: ["private", "templates", ".obsidian"],
+    ignorePatterns: [
+      "private",
+      "templates",
+      ".obsidian",
+      ".authoring",
+      ".agents",
+      ".claude",
+      "AGENTS.md",
+      "CLAUDE.md",
+    ],
     defaultDateType: "created",
     theme: {
       cdnCaching: true,
@@ -52,6 +61,7 @@ const config: QuartzConfig = {
   plugins: {
     transformers: [
       Plugin.FrontMatter(),
+      Plugin.MarkdownElements(),
       Plugin.GitMetadata(),
       Plugin.CreatedModifiedDate({
         priority: ["frontmatter", "filesystem"],

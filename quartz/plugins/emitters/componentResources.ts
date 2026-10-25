@@ -37,6 +37,10 @@ function getComponentResources(ctx: BuildCtx): ComponentResources {
     afterDOMLoaded: new Set<string>(),
   }
 
+  for (const transformer of ctx.cfg.plugins.transformers) {
+    if (transformer.css) componentResources.css.add(transformer.css)
+  }
+
   for (const component of allComponents) {
     const { css, beforeDOMLoaded, afterDOMLoaded } = component
     if (css) {

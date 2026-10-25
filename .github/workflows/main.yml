@@ -25,6 +25,9 @@ jobs:
     - name: Install dependencies
       run: npm ci
     
+    - name: Check component catalog
+      run: npm run elements:check
+
     - name: Build with Quartz
       run: npx quartz build
     
