@@ -1,3 +1,6 @@
 node_modules/
 quartz/.quartz-cache/
 public/
+
+# TypeScript incremental build cache (tsconfig.json sets "incremental": true)
+*.tsbuildinfo
