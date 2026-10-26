@@ -1,9 +1,11 @@
 import type { ElementRegistry } from "./types"
 import { mapElements } from "./Map"
 import { slotStackElements } from "./SlotStack"
+import { embedElements } from "./Embed"
 
 /** Add static Markdown elements here. Names must start with a capital letter. */
 export const elements: ElementRegistry = {
+  ...embedElements,
   ...mapElements,
   ...slotStackElements,
   Badge: {

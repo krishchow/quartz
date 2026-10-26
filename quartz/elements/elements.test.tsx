@@ -19,6 +19,45 @@ const registry: ElementRegistry = {
   Literal: { props: {}, content: "text", render: (_, children) => <pre>{children}</pre> },
 }
 
+test("Embed renders a borderless frame with defaults and escaped custom props", async () => {
+  const html = await compile('<Embed url="https://example.com" />')
+  assert.match(html, /<iframe class="md-embed"/)
+  assert.match(html, /src="https:\/\/example.com"/)
+  assert.match(html, /title="example.com"/)
+  assert.match(html, /height="600"/)
+  assert.match(html, /width="100%"/)
+  assert.match(html, /loading="lazy"/)
+  assert.match(html, /allowfullscreen/)
+  assert.doesNotMatch(html, /<p>|<a /)
+  const custom = await compile(
+    '<Embed url="https://example.com/?a=1&amp;b=2" title="A &quot;project&quot;" height="720" />',
+  )
+  assert.match(custom, /height="720"/)
+  assert.match(custom, /title="A &#x22;project&#x22;"/)
+  assert.match(custom, /src="https:\/\/example.com\/\?a=1&#x26;b=2"/)
+})
+
+test("Embed rejects invalid destinations, dimensions, titles, and children", async () => {
+  for (const url of [
+    "javascript:alert(1)",
+    "data:text/html,hello",
+    "/relative",
+    "https://user:pass@example.com",
+    "invalid",
+  ]) {
+    await assert.rejects(compile(`<Embed url="${url}" />`), /absolute HTTP or HTTPS URL/)
+  }
+  await assert.rejects(compile("<Embed />"), /Missing required prop/)
+  await assert.rejects(compile('<Embed url="https://example.com" title=" " />'), /non-whitespace/)
+  for (const height of ["0", "-1", "1.5", "abc"]) {
+    await assert.rejects(compile(`<Embed url="https://example.com" height="${height}" />`))
+  }
+  await assert.rejects(
+    compile('<Embed url="https://example.com">text</Embed>'),
+    /does not accept children/,
+  )
+})
+
 async function compile(value: string, definitions = registry) {
   const file = new VFile({ path: "post.md", value })
   const processor = unified()
